@@ -37,7 +37,7 @@ class TestLatcher < MiniTest::Unit::TestCase
   end
 
   def test_limit
-    res = latch(['--limit', '1', 'h'], ['hello', 'hope'])
+    res = latch(['h', '--limit', '1'], ['hello', 'hope'])
     assert_equal ['hello'], res
   end
 
