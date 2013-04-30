@@ -2,64 +2,62 @@
 
 args = {}
 queries = {}
-argname = nil
+skip = false
 
-for i, value in ipairs(arg) do
-  if value == '--no-dotfiles' then
+for i=1, #arg do
+  value = arg[i]
+  match = value:match('^%-%-(.+)$') 
+  if skip then
+    skip = false
+  elseif value == '--no-dotfiles' then
     -- do nothing
-  elseif argname then
-    args[argname] = value
-    argname = nil
+  elseif match then
+    args[match] = arg[i + 1]
+    skip = true
   else
-    match = string.match(value, '^%-%-(.+)$')
-    if match then
-      argname = match
-    else
-      table.insert(queries, value)
-    end
+    queries[#queries + 1] = value
   end
 end
 
 patterns = {}
 
-for i, query in ipairs(queries) do
-  for q in string.gmatch(query or '', '%S+') do
-    sub = {}
-    table.insert(patterns, sub)
-    table.insert(sub, '^'..q)
-    table.insert(sub, '%p'..q)
+for _, query in ipairs(queries) do
+  for q in (query or ''):gmatch('%S+') do
+    patterns[#patterns+1] = {
+      '^'  .. q,
+      '%p' .. q
+    }
   end
 end
 
 count = 0
-args.limit = args.limit and tonumber(args.limit) or 50
+limit = args.limit and tonumber(args.limit) or 50
+manifest = args.manifest and io.open(args.manifest) or io.stdin
 
-if args.manifest then
-  manifest = io.open(args.manifest)
-else
-  manifest = io.stdin
+local function matches_any(line, patterns)
+  for _, sub in ipairs(patterns) do
+    if line:find(sub) then
+      return true
+    end
+  end
+end
+
+local function matches_all_patterns(line)
+  for _, pattern in ipairs(patterns) do
+    if not matches_any(line, pattern) then
+      return false
+    end
+  end
+
+  return true
 end
 
 for line in manifest:lines() do
-  matched = true
-
-  for i, sub in ipairs(patterns) do
-    submatched = false
-
-    for j, pattern in ipairs(sub) do
-      if string.find(line, pattern) then
-        submatched = true
-      end
-    end
-
-    if not submatched then matched = false end
-  end
-
-  if matched then
+  if matches_all_patterns(line) then
     count = count + 1
     print(line)
 
-    if args.limit == count then break end
+    if limit == count then break end
   end
 end
 
