@@ -45,5 +45,10 @@ class TestLatcher < MiniTest::Unit::TestCase
     res = latch('', ['hello', 'world'])
     assert_equal ['hello', 'world'], res
   end
+
+  def test_case
+    res = latch('Con', ['MainController'])
+    assert_equal ['MainController'], res
+  end
 end
 

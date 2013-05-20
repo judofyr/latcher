@@ -23,10 +23,16 @@ local patterns = {}
 
 for _, query in ipairs(queries) do
   for q in (query or ''):gmatch('%S+') do
-    patterns[#patterns+1] = {
+    local sub = {
       '^'  .. q,
       '%p' .. q
     }
+
+    if q:match('^[A-Z]') then
+      sub[#sub+1] = q
+    end
+
+    patterns[#patterns+1] = sub
   end
 end
 
