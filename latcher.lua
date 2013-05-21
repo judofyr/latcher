@@ -28,6 +28,7 @@ for _, query in ipairs(queries) do
       '%p' .. q
     }
 
+    -- Camel case words can match anywhere
     if q:match('^[A-Z]') then
       sub[#sub+1] = q
     end
